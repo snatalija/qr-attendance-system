@@ -135,4 +135,37 @@ app.delete('/api/logs', async (req, res) => {
     }
 });
 
+app.get('/api/reports', async (req, res) => {
+  try {
+    const logs = await Log.find().sort({ timestamp: 1 });
+    const reports = {};
+
+    logs.forEach(log => {
+    const date = new Date(log.timestamp).toISOString().split('T')[0];
+    const key = `${log.qrCode}_${date}`;
+
+    if (!reports[key]) {
+        reports[key] = { user: log.qrCode, date, lastIn: null, totalMs: 0, sessions: [] };
+    }
+
+    if (log.type === 'IN') {
+        reports[key].lastIn = log.timestamp; 
+    } else if (log.type === 'OUT' && reports[key].lastIn) {
+        const duration = new Date(log.timestamp) - new Date(reports[key].lastIn);
+        reports[key].totalMs += duration;
+        reports[key].lastIn = null;
+    }
+    });
+
+    const finalData = Object.values(reports).map(r => {
+      const hours = Math.floor(r.totalMs / 3600000);
+      const minutes = Math.floor((r.totalMs % 3600000) / 60000);
+      return { ...r, duration: `${hours}h ${minutes}m` };
+    });
+
+    res.json(finalData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 app.listen(5001, () => console.log("🚀 Server running on port 5001"));

@@ -4,12 +4,14 @@ import Scanner from './components/Scanner';
 import Admin from './components/Admin';
 import LogTable from './components/LogTable';
 import { Parser } from '@json2csv/plainjs';
+import WorkReport from './components/WorkReport';
 
 function App() {
   const [scans, setScans] = useState([]);
   const [message, setMessage] = useState("Scan your code...");
   const [stats, setStats] = useState({ totalScans: 0, presentEmployees: 0 });
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [reports, setReports] = useState([]);
 
   const fetchLogs = async () => {
     try {
@@ -30,10 +32,15 @@ function App() {
       console.error("Error loading stats:", err);
     }
   };
-
+  const fetchReports = async () => {
+    const res = await fetch('http://localhost:5001/api/reports');
+    const data = await res.json();
+    setReports(data);
+  };
   useEffect(() => {
     fetchLogs();
     fetchStats();
+    fetchReports();
   }, []);
 
   const handleScan = async (code) => {
@@ -143,7 +150,7 @@ function App() {
       </div>
 
       <LogTable scans={filteredScans} />
-
+      <WorkReport reports={reports} />
       <Admin />
       
       <div className="reset-container">
