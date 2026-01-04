@@ -1,4 +1,4 @@
-/* Glavni kontejner */
+/* --- Global Styles --- */
 .app-container {
   padding: 20px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -7,119 +7,9 @@
   color: #333;
 }
 
-h1 {
-  text-align: center;
-  color: #2c3e50;
-}
+h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; }
 
-/* Sekcija za skeniranje */
-.scanner-section {
-  background: #f8f9fa;
-  padding: 30px;
-  border-radius: 12px;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  text-align: center;
-  border: 1px solid #e9ecef;
-}
-
-.status-message {
-  font-size: 1.2rem;
-  margin-bottom: 20px;
-  font-weight: 600;
-}
-
-.status-success { color: #27ae60; }
-.status-neutral { color: #34495e; }
-
-/* Input polje */
-.scan-input {
-  padding: 15px;
-  font-size: 18px;
-  width: 100%;
-  max-width: 500px;
-  border-radius: 8px;
-  border: 2px solid #bdc3c7;
-  transition: border-color 0.3s ease;
-  text-align: center;
-}
-
-.scan-input:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 8px rgba(52, 152, 219, 0.2);
-}
-
-/* Tabela */
-.table-container {
-  max-height: 400px;
-  overflow-y: auto;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
-
-.scans-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-}
-
-.scans-table th {
-  background: #343a40;
-  color: white;
-  padding: 12px;
-  position: sticky;
-  top: 0;
-}
-
-.scans-table td {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
-  text-align: center;
-}
-
-.newest-row {
-  background-color: #e8f5e9 !important;
-  font-weight: bold;
-}
-
-/* Admin sekcija - Dodavanje radnika */
-.admin-section {
-  margin-top: 50px;
-  padding: 25px;
-  background: #f1f3f5;
-  border-radius: 10px;
-  border: 1px dashed #ced4da;
-}
-
-.admin-form {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.admin-input {
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  flex: 1;
-  min-width: 200px;
-}
-
-.admin-button {
-  padding: 10px 25px;
-  background-color: #2c3e50;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.admin-button:hover {
-  background-color: #1a252f;
-}
+/* --- Dashboard Stats --- */
 .stats-container {
   display: flex;
   gap: 20px;
@@ -141,8 +31,9 @@ h1 {
 .stat-card h4 {
   margin: 0;
   color: #7f8c8d;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .stat-number {
@@ -151,11 +42,155 @@ h1 {
   margin: 10px 0 0 0;
   color: #2c3e50;
 }
-.status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: bold;
+
+/* --- Scanner Section --- */
+.scanner-section {
+  background: #f8f9fa;
+  padding: 30px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  text-align: center;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
 }
-.status-badge.IN { background: #e8f5e9; color: #2e7d32; }
-.status-badge.OUT { background: #ffebee; color: #c62828; }
+
+.status-message {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  font-weight: 600;
+  min-height: 1.5em;
+}
+
+.status-success { color: #27ae60; }
+
+.scan-input {
+  padding: 15px;
+  font-size: 18px;
+  width: 100%;
+  max-width: 450px;
+  border-radius: 8px;
+  border: 2px solid #bdc3c7;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.scan-input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 10px rgba(52, 152, 219, 0.2);
+}
+
+/* --- Filter & Export Section --- */
+.filter-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+  background: #ffffff;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.date-picker-group { display: flex; align-items: center; gap: 10px; }
+.date-picker-group label { font-weight: bold; color: #444; }
+
+.date-input {
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+/* --- Table Styles --- */
+.table-container {
+  margin-top: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #dee2e6;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.scans-table { width: 100%; border-collapse: collapse; background: white; }
+
+.scans-table th {
+  background: #343a40;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  position: sticky;
+  top: 0;
+}
+
+.scans-table td { padding: 12px; border-bottom: 1px solid #eee; }
+
+.user-name { font-weight: 500; color: #2c3e50; }
+.timestamp-cell { font-family: monospace; font-size: 1rem; }
+
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.status-in { background: #e6ffed; color: #2ecc71; border: 1px solid #2ecc71; }
+.status-out { background: #fff5f5; color: #e74c3c; border: 1px solid #e74c3c; }
+
+.newest-row { background-color: #f0f7ff !important; border-left: 4px solid #3498db; }
+
+.admin-section {
+  margin-top: 50px;
+  padding: 30px;
+  background: #f1f3f5;
+  border-radius: 12px;
+  border: 1px dashed #adb5bd;
+}
+
+.admin-section h2 { margin-top: 0; color: #495057; font-size: 1.4rem; }
+
+.admin-form {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+
+.admin-input {
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  flex: 1;
+  min-width: 250px;
+  font-size: 1rem;
+}
+
+/* --- Shared Button Styles --- */
+.admin-button {
+  padding: 12px 24px;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: opacity 0.2s;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-button:hover { opacity: 0.9; }
+
+.btn-download { background-color: #27ae60; }
+.btn-reset { background-color: #e74c3c; }
+.btn-register { background-color: #2c3e50; }
+
+.reset-container {
+  text-align: center;
+  margin-top: 40px;
+  padding-bottom: 40px;
+} 
