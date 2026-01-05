@@ -137,34 +137,60 @@ app.delete('/api/logs', async (req, res) => {
 
 app.get('/api/reports', async (req, res) => {
   try {
-    const logs = await Log.find().sort({ timestamp: 1 });
-    const reports = {};
-
-    logs.forEach(log => {
-    const date = new Date(log.timestamp).toISOString().split('T')[0];
-    const key = `${log.qrCode}_${date}`;
-
-    if (!reports[key]) {
-        reports[key] = { user: log.qrCode, date, lastIn: null, totalMs: 0, sessions: [] };
-    }
-
-    if (log.type === 'IN') {
-        reports[key].lastIn = log.timestamp; 
-    } else if (log.type === 'OUT' && reports[key].lastIn) {
-        const duration = new Date(log.timestamp) - new Date(reports[key].lastIn);
-        reports[key].totalMs += duration;
-        reports[key].lastIn = null;
-    }
+    const { month, year } = req.query;
+    
+    // 1. Povlačimo SVE logove iz baze da izbegnemo probleme sa tipovima podataka (String vs Date)
+    const allLogs = await Log.find().sort({ timestamp: 1 });
+    
+    // 2. Filtriramo logove u memoriji servera za izabrani mesec i godinu
+    const filteredLogs = allLogs.filter(log => {
+      const logDate = new Date(log.timestamp);
+      const m = logDate.getUTCMonth() + 1; // getUTCMonth je 0-11, pa dodajemo 1
+      const y = logDate.getUTCFullYear();
+      
+      return m === parseInt(month) && y === parseInt(year);
     });
 
-    const finalData = Object.values(reports).map(r => {
-      const hours = Math.floor(r.totalMs / 3600000);
-      const minutes = Math.floor((r.totalMs % 3600000) / 60000);
-      return { ...r, duration: `${hours}h ${minutes}m` };
+    console.log(`🔍 Pretraga za: ${month}/${year}`);
+    console.log(`✅ Ukupno u bazi: ${allLogs.length} | Pronađeno za ovaj mesec: ${filteredLogs.length}`);
+
+    const summary = {};
+
+    // 3. Obračun sati (IN/OUT logika)
+    filteredLogs.forEach(log => {
+      const worker = log.qrCode; // Koristimo qrCode polje iz tvog modela
+      
+      if (!summary[worker]) {
+        summary[worker] = { user: worker, totalMs: 0, lastIn: null };
+      }
+
+      if (log.type === 'IN') {
+        summary[worker].lastIn = log.timestamp;
+      } else if (log.type === 'OUT' && summary[worker].lastIn) {
+        const diff = new Date(log.timestamp) - new Date(summary[worker].lastIn);
+        if (diff > 0) {
+          summary[worker].totalMs += diff;
+        }
+        summary[worker].lastIn = null;
+      }
+    });
+
+    // 4. Formatiranje podataka za Frontend
+    const finalData = Object.values(summary).map(r => {
+      const totalMinutes = Math.floor(r.totalMs / 60000);
+      const hours = Math.floor(totalMinutes / 60);
+      const mins = totalMinutes % 60;
+      
+      return { 
+        user: r.user, 
+        duration: `${hours}h ${mins}m`,
+        totalHours: parseFloat((r.totalMs / 3600000).toFixed(2))
+      };
     });
 
     res.json(finalData);
   } catch (err) {
+    console.error("Greška na API/Reports:", err);
     res.status(500).json({ error: err.message });
   }
 });

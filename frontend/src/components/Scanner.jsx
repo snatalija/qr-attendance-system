@@ -6,7 +6,9 @@ function Scanner({ onScan, message }) {
   const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
-    inputRef.current.focus();
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   }, []);
 
   const handleInputChange = (e) => {
@@ -16,32 +18,54 @@ function Scanner({ onScan, message }) {
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
 
     typingTimeoutRef.current = setTimeout(() => {
-      if (value.length > 5) {
+      if (value.length > 2) { 
         onScan(value);
-        setQrInput(""); // Resetuje polje nakon slanja
+        setQrInput(""); 
       }
     }, 600);
   };
 
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    if (qrInput.trim()) {
+      onScan(qrInput);
+      setQrInput("");
+    }
+  };
+
   return (
     <div className="scanner-section">
-      <h2 className={`status-message ${message.includes('Welcome') ? 'status-success' : ''}`}>
+      <h2 className={`status-message ${message.includes('✅') ? 'status-success' : ''}`}>
         {message}
       </h2>
-      <form onSubmit={(e) => { e.preventDefault(); onScan(qrInput); setQrInput(""); }}>
+      
+      <form onSubmit={handleFormSubmit}>
         <input
           ref={inputRef}
           className="scan-input"
           value={qrInput}
           onChange={handleInputChange}
           placeholder="Scan your QR code here..."
+          autoComplete="off"
           onBlur={(e) => {
-            if (!e.relatedTarget || e.relatedTarget.tagName !== 'INPUT') {
-               setTimeout(() => inputRef.current?.focus(), 100);
+            const nextFocus = e.relatedTarget?.tagName;
+            
+            if (
+              nextFocus === 'SELECT' || 
+              nextFocus === 'BUTTON' || 
+              nextFocus === 'INPUT' || 
+              nextFocus === 'OPTION'
+            ) {
+              return;
             }
+
+            setTimeout(() => {
+              if (inputRef.current) inputRef.current.focus();
+            }, 150);
           }}
         />
       </form>
+      <p className="scanner-hint">Scanner is active. Keep this field ready.</p>
     </div>
   );
 }
