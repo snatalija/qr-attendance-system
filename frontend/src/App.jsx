@@ -15,6 +15,7 @@ function App() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isAdmin, setIsAdmin] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const months = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
@@ -69,7 +70,14 @@ function App() {
       const data = await response.json();
       
       if (data.success) {
-        setMessage(`✅ ${data.message}`);
+        setCurrentUser({
+          name: data.employeeName,
+          image: data.employeeImage,
+          type: data.type
+        });
+        setTimeout(() => {
+          setCurrentUser(null);
+        }, 5000);
         setScans(prevScans => [data.data, ...prevScans]);
         fetchStats();
         
@@ -203,7 +211,22 @@ function App() {
               <p className="stat-number">{stats.presentEmployees}</p>
             </div>
           </div>
-          
+          {currentUser && (
+            <div className="scan-result-card">
+              <img 
+                src={currentUser.image.startsWith('http') 
+                      ? currentUser.image 
+                      : `http://localhost:5001${currentUser.image}`} 
+                  className={`profile-img-large ${currentUser.type}`}
+                alt="Profile" 
+                onError={(e) => { e.target.src = "https://via.placeholder.com/150" }}
+              />
+              <h2 className="scan-name">{currentUser.name}</h2>
+              <p className={`status-badge ${currentUser.type === 'IN' ? 'status-in' : 'status-out'}`}>
+                {currentUser.type === 'IN' ? 'Checked In' : 'Checked Out'}
+              </p>
+            </div>
+          )}
           <Scanner onScan={handleScan} message={message} />
         </div>
       ) : (

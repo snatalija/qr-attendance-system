@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const Log = require('./models/Log');
+const multer = require('multer');
+const path = require('path');
 
 const app = express();
 app.use(cors());
@@ -15,7 +17,8 @@ mongoose.connect('mongodb://localhost:27017/qr-attendance')
 // 2. Employee Schema
 const employeeSchema = new mongoose.Schema({
     fullName: String,
-    qrCode: String
+    qrCode: String,
+    profileImage: String
 });
 const Employee = mongoose.model('Employee', employeeSchema);
 
@@ -25,18 +28,18 @@ app.post('/api/scan', async (req, res) => {
         const { qrCode } = req.body;
         
         const employee = await Employee.findOne({ qrCode: qrCode });
-        const displayName = employee ? employee.fullName : qrCode;
-
+        if (!employee) {
+            return res.status(404).json({ success: false, message: "Unknown QR Code" });
+        }
+        const workerName = employee.fullName;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        // Pronalaženje poslednjeg skena koristeći novi naziv polja 'timestamp'
         const lastLog = await Log.findOne({ 
-            qrCode: displayName, 
+            qrCode: workerName, 
             timestamp: { $gte: today } 
         }).sort({ timestamp: -1 });
 
-        // --- DEBOUNCE LOGIC (Anti-double scan) ---
         if (lastLog) {
             const lastTime = new Date(lastLog.timestamp).getTime();
             const nowTime = new Date().getTime();
@@ -57,7 +60,7 @@ app.post('/api/scan', async (req, res) => {
         const type = (lastLog && lastLog.type === 'IN') ? 'OUT' : 'IN';
 
         const newLog = new Log({ 
-            qrCode: displayName, 
+            qrCode: workerName, 
             timestamp: new Date(), 
             type: type
         });
@@ -70,7 +73,10 @@ app.post('/api/scan', async (req, res) => {
 
         res.json({ 
             success: true, 
-            message: statusMessage,
+            message: `${type === 'IN' ? 'Welcome' : 'Goodbye'}, ${employee.fullName}!`,
+            employeeName: employee.fullName,
+            employeeImage: employee.profileImage || "https://via.placeholder.com/150", // Default slika ako nema prave
+            type: type,
             data: newLog 
         });
     } catch (error) {
@@ -114,17 +120,38 @@ app.get('/api/stats', async (req, res) => {
 });
 
 // 6. Register new employee
-app.post('/api/employees', async (req, res) => {
-    try {
-        const { fullName, qrCode } = req.body;
-        const newEmployee = new Employee({ fullName, qrCode });
-        await newEmployee.save();
-        res.json({ success: true, message: "Employee added successfully!" });
-    } catch (error) {
-        res.status(500).json({ success: false, message: "Error saving employee" });
-    }
-});
+const fs = require('fs');
+const uploadDir = './uploads';
 
+if (!fs.existsSync(uploadDir)){
+    fs.mkdirSync(uploadDir);
+}
+const storage = multer.diskStorage({
+  destination: './uploads/',
+  filename: function(req, file, cb) {
+    cb(null, 'employee-' + Date.now() + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage: storage });
+app.use('/uploads', express.static('uploads'));
+
+app.post('/api/employees', upload.single('image'), async (req, res) => {
+  try {
+    const { fullName, qrCode } = req.body;
+    const profileImage = req.file ? `/uploads/${req.file.filename}` : '';
+    
+    const newEmployee = new Employee({ 
+      fullName, 
+      qrCode, 
+      profileImage 
+    });
+    
+    await newEmployee.save();
+    res.json({ success: true, message: "Employee added with image!" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error saving employee" });
+  }
+});
 // 7. Delete all logs (Reset button)
 app.delete('/api/logs', async (req, res) => {
     try {
